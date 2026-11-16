@@ -153,8 +153,8 @@
   .icon-btn { border: 1px solid transparent; background: transparent; padding: 7px; border-radius: 8px; color: var(--muted); display: grid; place-items: center; }
   .icon-btn:hover { background: var(--lav-wash); border-color: var(--lav-stroke); color: var(--text); }
   .icon-btn.danger:hover { color: var(--due); background: color-mix(in srgb, var(--due) 10%, transparent); border-color: color-mix(in srgb, var(--due) 25%, transparent); }
-  .row.done .who, .row.done .what, .row.done .money { text-decoration: line-through; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); color: var(--muted); }
-  .row.done .chip, .row.done .badge { opacity: .6; }
+  /* Pedido listo: sin tachado, la fila se ve más apagada */
+  .row.done > :not(input):not(.actions) { opacity: .45; }
   .rest.due { color: var(--due); }
   .row.done .rest.due { text-decoration: none; opacity: .85; }
   .date { font-size: 12px; color: var(--muted); margin-left: 8px; white-space: nowrap; }
@@ -252,7 +252,7 @@
     .row > :nth-child(7) { grid-area: rest; text-align: left; }
     .row > :nth-child(8) { grid-area: badge; margin-top: 4px; }
     .row > :nth-child(9) { grid-area: actions; justify-self: end; }
-    .row > [data-l]::before { content: attr(data-l); display: block; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .row > [data-l]::before { content: attr(data-l); display: inline-block; width: 100%; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
   }
 
   /* ===== Estructura tipo Etiq: menú limpio, hero grande a color, tarjetas con relieve ===== */
@@ -383,6 +383,7 @@
     .tabs { order: 4; margin-right: 0; gap: 18px; }
     #btn-new { order: 5; margin-left: auto; padding: 9px 16px; font-size: 13px; }
   }
+
 </style>
 </head>
 <body class="locked">
