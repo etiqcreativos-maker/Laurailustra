@@ -32,6 +32,7 @@
     --c-hacer: #c0567c;           /* estados del tablero y del pago */
     --c-proceso: #d3a43a;
     --c-listo: #5f9c86;
+    --c-entregado: #8a6bbd;
     --due: #b04a62;
     --wash: #f7f5fb;              /* hover suave de filas */
     --lav-stroke: #d9cff2;        /* borde de tarjetas y controles */
@@ -53,7 +54,7 @@
       --bg: #141415; --surface: #141415; --surface-2: #1d1d1f;
       --text: #ececec; --muted: #9a9a9f; --line: #2e2e32;
       --accent: #a594ec; --accent-hover: #bbaef3; --on-accent: #141415;
-      --c-hacer: #e079a0; --c-proceso: #e2b650; --c-listo: #79b9a2;
+      --c-hacer: #e079a0; --c-proceso: #e2b650; --c-listo: #79b9a2; --c-entregado: #b49ae3;
       --due: #e08ba0; --wash: #1a1a1d; --nav-bg: #141415; --nav-text: #ececec; --nav-muted: #9a9a9f;
       --lav-stroke: #5b4d8c; --card-stroke: #5b4d8c; --stat-bg: #232326; --stat-border: #2e2e32; --stat-label: #9a9a9f; --stat-value: #ececec; --lav-wash: #302944; --lav-bar: #b3a2ee; --card: #1d1d1f; --zebra: #242424;
     }
@@ -189,12 +190,14 @@
   .board-bar { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 18px; }
   .board-bar .search { flex: 0 1 300px; }
   .hint-bar { margin: 0; color: var(--muted); font-size: 12px; }
-  .board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start; }
+  .board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: start; }
+  @media (min-width: 861px) and (max-width: 1100px) { .board { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .kcol { background: var(--lav-wash); border: 1px solid var(--lav-stroke); border-radius: 14px; padding: 12px; min-height: 160px; }
   .kcol.over { outline: 2px dashed var(--lav-bar); outline-offset: 2px; }
   .kcol[data-stage="hacer"] { --stage: var(--c-hacer); }
   .kcol[data-stage="proceso"] { --stage: var(--c-proceso); }
   .kcol[data-stage="listo"] { --stage: var(--c-listo); }
+  .kcol[data-stage="entregado"] { --stage: var(--c-entregado); }
   .khead { display: flex; align-items: center; gap: 9px; padding: 2px 2px 12px; font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
   .khead .dot { width: 8px; height: 8px; border-radius: 50%; }
   .khead .n { margin-left: auto; font-weight: 700; font-size: 12px; color: var(--muted); letter-spacing: 0; background: var(--card); border-radius: 999px; padding: 1px 9px; }
@@ -686,6 +689,7 @@ $('list').addEventListener('change', e => {
   if (e.target.dataset.act !== 'toggle') return;
   const o = orders.find(x => x.id === Number(e.target.closest('.row').dataset.id));
   o.listo = e.target.checked; o.doneAt = o.listo ? Date.now() : null;
+  if (o.etapa === 'entregado' || o.etapa === 'listo') o.etapa = 'hacer';
   save(); render();
 });
 
@@ -796,11 +800,13 @@ const STAGES = [
   { key: 'hacer',   name: 'Por hacer',  color: 'var(--c-hacer)' },
   { key: 'proceso', name: 'En proceso', color: 'var(--c-proceso)' },
   { key: 'listo',   name: 'Finalizado', color: 'var(--c-listo)' },
+  { key: 'entregado', name: 'Entregado', color: 'var(--c-entregado)' },
 ];
 const DONE_LIMIT = 8;                       // en «Listo» solo se ven los últimos; el resto con un botón
-const stageOf = o => o.listo ? 'listo' : (o.etapa === 'proceso' ? 'proceso' : 'hacer');
+const stageOf = o => o.listo ? (o.etapa === 'entregado' ? 'entregado' : 'listo') : (o.etapa === 'proceso' ? 'proceso' : 'hacer');
+const isDoneStage = k => k === 'listo' || k === 'entregado';
 const posOf = o => o.pos ?? o.id;           // orden dentro de la columna (menor = antes)
-let boardQ = '', showAllDone = false;
+let boardQ = '', showAllDone = { listo: false, entregado: false };
 
 function cardHTML(o) {
   const st = stageOf(o), i = STAGES.findIndex(x => x.key === st), d = owed(o);
@@ -813,7 +819,7 @@ function cardHTML(o) {
       ${d > 0 ? `<span class="k-due">Falta ${money(d)}</span>` : ''}
       <span class="k-actions">
         <button class="icon-btn" data-act="prev" aria-label="Mover a ${i > 0 ? STAGES[i - 1].name : ''}" title="${i > 0 ? 'Mover a ' + STAGES[i - 1].name : ''}" ${i === 0 ? 'disabled' : ''}>←</button>
-        <button class="icon-btn" data-act="next" aria-label="Mover a ${i < 2 ? STAGES[i + 1].name : ''}" title="${i < 2 ? 'Mover a ' + STAGES[i + 1].name : ''}" ${i === 2 ? 'disabled' : ''}>→</button>
+        <button class="icon-btn" data-act="next" aria-label="Mover a ${i < STAGES.length - 1 ? STAGES[i + 1].name : ''}" title="${i < STAGES.length - 1 ? 'Mover a ' + STAGES[i + 1].name : ''}" ${i === STAGES.length - 1 ? 'disabled' : ''}>→</button>
       </span>
     </div>
   </article>`;
@@ -833,17 +839,19 @@ function renderHero() {
 
 function renderBoard() {
   const q = norm(boardQ);
-  const cols = { hacer: [], proceso: [], listo: [] };
+  const cols = { hacer: [], proceso: [], listo: [], entregado: [] };
   orders.filter(o => !q || norm(o.cliente + ' ' + o.pedido).includes(q)).forEach(o => cols[stageOf(o)].push(o));
   cols.hacer.sort((a, b) => posOf(a) - posOf(b));
   cols.proceso.sort((a, b) => posOf(a) - posOf(b));
   cols.listo.sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0) || b.id - a.id);
+  cols.entregado.sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0) || b.id - a.id);
   $('board').innerHTML = STAGES.map(st => {
     const items = cols[st.key];
-    const limited = st.key === 'listo' && !showAllDone && !q && items.length > DONE_LIMIT;
+    const done = isDoneStage(st.key);
+    const limited = done && !showAllDone[st.key] && !q && items.length > DONE_LIMIT;
     const shown = limited ? items.slice(0, DONE_LIMIT) : items;
-    const more = st.key === 'listo' && !q && items.length > DONE_LIMIT
-      ? `<button class="kmore" data-act="more">${showAllDone ? 'Mostrar menos' : `Ver los ${items.length - DONE_LIMIT} anteriores`}</button>` : '';
+    const more = done && !q && items.length > DONE_LIMIT
+      ? `<button class="kmore" data-act="more" data-stage="${st.key}">${showAllDone[st.key] ? 'Mostrar menos' : `Ver los ${items.length - DONE_LIMIT} anteriores`}</button>` : '';
     return `<section class="kcol" data-stage="${st.key}" aria-label="${st.name}">
       <div class="khead"><span class="dot" style="background:${st.color}"></span>${st.name}<span class="n">${items.length}</span></div>
       <div class="kcards">${shown.map(cardHTML).join('') || '<div class="kempty">Suelta aquí un pedido</div>'}</div>${more}
@@ -853,8 +861,9 @@ function renderBoard() {
 
 function placeCard(id, stage, pos) {
   const o = orders.find(x => x.id === id);
-  if (stage === 'listo') {
+  if (isDoneStage(stage)) {
     if (!o.listo) { o.listo = true; o.doneAt = Date.now(); }
+    o.etapa = stage;
   } else {
     o.listo = false; o.doneAt = null; o.etapa = stage;
     o.pos = pos ?? Math.max(0, ...orders.filter(x => !x.listo && stageOf(x) === stage && x !== o).map(posOf)) + 1;
@@ -866,7 +875,7 @@ $('b-q').addEventListener('input', e => { boardQ = e.target.value; renderBoard()
 $('board').addEventListener('click', e => {
   const btn = e.target.closest('[data-act]');
   const card = e.target.closest('.kcard');
-  if (btn && btn.dataset.act === 'more') { showAllDone = !showAllDone; return renderBoard(); }
+  if (btn && btn.dataset.act === 'more') { const k = btn.dataset.stage || 'listo'; showAllDone[k] = !showAllDone[k]; return renderBoard(); }
   if (!card) return;
   const id = Number(card.dataset.id);
   if (btn) {
@@ -899,7 +908,7 @@ $('board').addEventListener('dragover', e => {
   const col = e.target.closest('.kcol'); if (!col || dragId == null) return;
   e.preventDefault(); e.dataTransfer.dropEffect = 'move';
   clearDropMarks(); col.classList.add('over');
-  if (col.dataset.stage === 'listo') return; // «Finalizado» se ordena por fecha de cierre
+  if (isDoneStage(col.dataset.stage)) return; // «Finalizado» y «Entregado» se ordenan por fecha de cierre
   const { before } = dropTarget(col, e.clientY);
   if (before) before.classList.add('drop-before'); else col.querySelector('.kcards').classList.add('drop-end');
 });
@@ -907,7 +916,7 @@ $('board').addEventListener('drop', e => {
   const col = e.target.closest('.kcol'); if (!col || dragId == null) return;
   e.preventDefault();
   const stage = col.dataset.stage, id = dragId; clearDropMarks();
-  if (stage === 'listo') return placeCard(id, 'listo');
+  if (isDoneStage(stage)) return placeCard(id, stage);
   const { cards, before } = dropTarget(col, e.clientY);
   const idx = before ? cards.indexOf(before) : cards.length;
   const posById = c => posOf(orders.find(x => x.id === Number(c.dataset.id)));
