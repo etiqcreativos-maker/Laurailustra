@@ -475,7 +475,7 @@
       <div class="hero-cta">
         <button class="btn soft" id="btn-new-hero">+ Agregar pedido</button>
         <button class="btn ghost" id="btn-go-board">Ver tablero</button>
-        <button class="btn ghost" id="btn-import">Importar de Instagram</button>
+        <button class="btn ghost" id="btn-import">Buscar pedidos nuevos</button>
       </div>
     </div>
     <div class="hero-badge">
@@ -564,7 +564,7 @@
 <dialog id="idlg">
   <form class="edit" method="dialog" onsubmit="return false">
     <h2>Importar de Instagram</h2>
-    <p class="r-sub">Aquí solo aparecen los chats donde escribiste «PEDIDO CONFIRMADO ✅». Los demás no se leen.</p>
+    <p class="r-sub">Solo aparecen los chats con un «PEDIDO CONFIRMADO ✅» nuevo. No se leen mensajes viejos, y un chat solo se lee cuando tú tocas «Importar».</p>
     <div class="ig-tools">
       <label class="search ig-search">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -604,7 +604,8 @@
       <label class="field">Monto
         <input id="c-monto" inputmode="numeric" placeholder="50000">
       </label>
-      <label class="field">Abono
+      <label class="field">
+        <span class="r-label">Abono <button type="button" class="linkbtn" id="c-50">Poner 50%</button></span>
         <input id="c-abono" inputmode="numeric" placeholder="0">
       </label>
     </div>
@@ -1203,9 +1204,9 @@ function renderDrafts() {
   updateDraftBadge();
   $('drafts').innerHTML = drafts.map(draftHTML).join('');
 }
-function showDraftMsg(text) {
-  const m = $('d-msg'); m.textContent = text; m.hidden = false;
-  clearTimeout(dMsgTimer); dMsgTimer = setTimeout(() => { m.hidden = true; }, 7000);
+function showDraftMsg(text, html) {
+  const m = $('d-msg'); if (html) m.innerHTML = text; else m.textContent = text; m.hidden = false;
+  clearTimeout(dMsgTimer); dMsgTimer = setTimeout(() => { m.hidden = true; }, html ? 14000 : 7000);
 }
 async function removeDraft(d) {
   const { error } = await sb.from(DRAFTS).delete().eq('id', d.id);
@@ -1233,7 +1234,14 @@ function openConfirm(d) {
   $('c-copy').textContent = 'Copiar mensaje'; $('c-err').hidden = true; $('c-ok').disabled = false;
   refreshConfirm();
   $('rdlg').showModal();
+  if (!d.pedido) $('c-pedido').focus(); else if (d.monto == null) $('c-monto').focus(); // lo que falta, lo escribes tú
 }
+$('c-50').addEventListener('click', e => { // abono = la mitad del total
+  e.preventDefault();
+  const v = readConfirm();
+  if (!v.monto) { $('c-monto').focus(); return; }
+  $('c-abono').value = Math.round(v.monto / 2); $('c-pago').value = 'parcial'; refreshConfirm();
+});
 $('rform').addEventListener('input', e => {
   if (e.target.id === 'c-text') { msgEdited = true; return; }
   if (e.target.id === 'c-monto' || e.target.id === 'c-abono') { // el estado de pago se ajusta solo según el abono
@@ -1295,13 +1303,10 @@ async function llamarInstagram(cuerpo) {
   return data;
 }
 let igChats = [], igMeta = null, igVerOcultos = false;
-let igOcMem = null; // copia en memoria: así funciona aunque el navegador no deje guardar
-const igOcultos = () => { if (!igOcMem) { try { igOcMem = JSON.parse(localStorage.getItem('ig_ocultos') || '{}'); } catch (e) { igOcMem = {}; } } return igOcMem; };
-const igGuardarOcultos = o => { igOcMem = o; try { localStorage.setItem('ig_ocultos', JSON.stringify(o)); } catch (e) {} };
 
 function renderChats() {
-  const box = $('ig-list'), oc = igOcultos(), q = norm($('ig-q').value);
-  const todos = igChats.map(c => ({ ...c, _txt: c.texto || c.ultimo || '', oculto: !!oc[c.id] && (c.fecha || '') <= oc[c.id] }));
+  const box = $('ig-list'), q = norm($('ig-q').value);
+  const todos = igChats.map(c => ({ ...c, _txt: c.texto || c.ultimo || '', oculto: !!c.oculto }));
   const nOcultos = todos.filter(c => c.oculto && !c.enCola).length;
   let lista = todos.filter(c => igVerOcultos ? c.oculto : !c.oculto);
   if (q) lista = lista.filter(c => norm(c.usuario + ' ' + c._txt).includes(q));
@@ -1318,8 +1323,8 @@ function renderChats() {
       </div>
       <div class="ig-acts">${acciones}</div>
     </div>`;
-  }).join('') : `<div class="ig-msg">${igVerOcultos ? 'No hay chats ocultos.' : q ? 'Ningún chat coincide con tu búsqueda.' : 'No encontré chats con «PEDIDO CONFIRMADO ✅» entre tus chats recientes.'}</div>`;
-  $('ig-count').innerHTML = `<span>${lista.length} ${lista.length === 1 ? 'chat' : 'chats'}${igMeta ? ` con «PEDIDO CONFIRMADO ✅» · ${igMeta.revisados} chats revisados` : ''}</span>` +
+  }).join('') : `<div class="ig-msg">${igVerOcultos ? 'No hay chats ocultos.' : q ? 'Ningún chat coincide con tu búsqueda.' : 'No hay pedidos confirmados nuevos.'}</div>`;
+  $('ig-count').innerHTML = `<span>${lista.length} ${lista.length === 1 ? 'chat' : 'chats'}${igMeta ? ` con «PEDIDO CONFIRMADO ✅» nuevo${igMeta.dias ? ` (últimos ${igMeta.dias} días)` : ''}` : ''}</span>` +
     (igVerOcultos ? '<button class="linkbtn" type="button" data-act="ig-ocultos">Volver a la lista</button>'
       : nOcultos ? `<button class="linkbtn" type="button" data-act="ig-ocultos">Ver ocultos (${nOcultos})</button>` : '');
 }
@@ -1333,10 +1338,39 @@ async function cargarChats() {
     $('ig-list').innerHTML = `<div class="ig-msg err">${esc(e.message)}</div>`;
   }
 }
-$('btn-import').addEventListener('click', () => {
-  $('ig-q').value = ''; igVerOcultos = false;
-  $('idlg').showModal(); cargarChats();
-});
+function abrirChats() { $('ig-q').value = ''; igVerOcultos = false; $('idlg').showModal(); cargarChats(); }
+
+// ---- Buscar pedidos nuevos: cada «PEDIDO CONFIRMADO ✅» nuevo llega solo a «Por confirmar» ----
+// Escribir esa frase en el chat es tu autorización para leerlo. Se busca al abrir la app, al volver a ella y cada pocos minutos.
+let igBuscando = false, igUltimaBusqueda = 0;
+async function buscarNuevos(manual) {
+  if (!sb || !user || igBuscando) return;
+  if (!manual && Date.now() - igUltimaBusqueda < 120000) return; // sola: como mucho cada 2 minutos
+  igBuscando = true; igUltimaBusqueda = Date.now();
+  const btn = $('btn-import');
+  if (manual) { btn.disabled = true; btn.textContent = 'Buscando…'; }
+  const elegir = ' · <button type="button" class="linkbtn" data-act="ig-chats">Elegir un chat</button>';
+  try {
+    const r = await llamarInstagram({ accion: 'sincronizar' });
+    if (r.creados) {
+      await refreshDrafts();
+      showDraftMsg(`Encontré <b>${r.creados}</b> pedido${r.creados === 1 ? '' : 's'} nuevo${r.creados === 1 ? '' : 's'} en Instagram. Está${r.creados === 1 ? '' : 'n'} en «Por confirmar».` + elegir, true);
+    } else if (r.primera) {
+      showDraftMsg('Listo: desde ahora, cada «PEDIDO CONFIRMADO ✅» nuevo llegará solo a «Por confirmar».' + elegir, true);
+    } else if (manual) {
+      showDraftMsg('No hay pedidos confirmados nuevos.' + elegir, true);
+    }
+    if (r.errores && r.errores.length) showDraftMsg(`No pude leer el chat de @${esc(r.errores[0].usuario)}: ${esc(r.errores[0].error)}` + elegir, true);
+  } catch (e) {
+    if (manual) showDraftMsg(e.message);   // sola: en silencio
+  } finally {
+    igBuscando = false;
+    if (manual) { btn.disabled = false; btn.textContent = 'Buscar pedidos nuevos'; }
+  }
+}
+$('btn-import').addEventListener('click', () => buscarNuevos(true));
+$('d-msg').addEventListener('click', e => { if (e.target.dataset.act === 'ig-chats') abrirChats(); });
+setInterval(() => { if (!document.hidden) buscarNuevos(false); }, 180000);
 $('ig-refresh').addEventListener('click', cargarChats);
 $('ig-close').addEventListener('click', () => {
   $('idlg').close();
@@ -1346,13 +1380,21 @@ $('ig-q').addEventListener('input', renderChats);
 $('ig-count').addEventListener('click', e => {
   if (e.target.dataset.act === 'ig-ocultos') { igVerOcultos = !igVerOcultos; renderChats(); }
 });
+function avisoFila(row, texto) {
+  let aviso = row.querySelector('.ig-err');
+  if (!aviso) { aviso = document.createElement('div'); aviso.className = 'ig-last ig-err'; aviso.style.color = 'var(--due)'; aviso.style.whiteSpace = 'normal'; row.querySelector('.ig-main').appendChild(aviso); }
+  aviso.textContent = texto;
+}
 $('ig-list').addEventListener('click', async e => {
   const btn = e.target.closest('[data-act]'); if (!btn) return;
   const row = btn.closest('.ig-row'), id = row.dataset.conv, chat = igChats.find(c => c.id === id);
-  if (btn.dataset.act === 'ig-hide' && chat) { // se oculta hasta que llegue un mensaje nuevo
-    const oc = igOcultos(); oc[id] = chat.fecha || new Date().toISOString(); igGuardarOcultos(oc); return renderChats();
+  if ((btn.dataset.act === 'ig-hide' || btn.dataset.act === 'ig-show') && chat) { // ocultar queda guardado en la nube: vale en todos tus aparatos
+    const ocultar = btn.dataset.act === 'ig-hide';
+    btn.disabled = true;
+    try { await llamarInstagram({ accion: ocultar ? 'ocultar' : 'mostrar', mensaje: chat.confirmacionId }); chat.oculto = ocultar; renderChats(); }
+    catch (err) { btn.disabled = false; avisoFila(row, err.message); }
+    return;
   }
-  if (btn.dataset.act === 'ig-show') { const oc = igOcultos(); delete oc[id]; igGuardarOcultos(oc); return renderChats(); }
   if (btn.dataset.act !== 'ig-import') return;
   btn.disabled = true; btn.textContent = 'Leyendo…';
   try {
@@ -1360,15 +1402,13 @@ $('ig-list').addEventListener('click', async e => {
     if (chat) {
       chat.enCola = true;
       const l = r && r.lectura;
-      if (l) chat.nota = `Leído: ${l.mascotas ?? '?'} mascota${l.mascotas === 1 ? '' : 's'} · ${l.comprobantes} comprobante${l.comprobantes === 1 ? '' : 's'}${l.pendiente != null ? ` · falta ${money(l.pendiente)}` : ''}`;
+      if (l) chat.nota = l.monto != null ? `Leído: valor ${money(l.monto)}. Falta escribir el pedido.` : 'Sin valor en el chat: ponlo tú. Falta escribir el pedido.';
     }
     renderChats();
     await refreshDrafts();
   } catch (err) {
     btn.disabled = false; btn.textContent = 'Reintentar';
-    let aviso = row.querySelector('.ig-err');
-    if (!aviso) { aviso = document.createElement('div'); aviso.className = 'ig-last ig-err'; aviso.style.color = 'var(--due)'; aviso.style.whiteSpace = 'normal'; row.querySelector('.ig-main').appendChild(aviso); }
-    aviso.textContent = err.message;
+    avisoFila(row, err.message);
   }
 });
 $('s-conf-card').addEventListener('click', () => { if (drafts.length) $('confirm-sec').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
@@ -1385,6 +1425,7 @@ async function enter(u) {
   catch (e) { setSync('error'); $('warn').hidden = false; $('warn').textContent = 'No se pudieron cargar los pedidos: ' + (e.message || e); }
   await fetchDrafts();
   lock(false); render(); renderDrafts(); subscribeRealtime();
+  buscarNuevos(false);
 }
 function leave() {
   user = null; orders = []; remote = new Map(); drafts = [];
@@ -1415,7 +1456,7 @@ $('btn-logout').addEventListener('click', () => { if (sb) sb.auth.signOut(); });
 
 window.addEventListener('online', () => { if (user) { setSync('pending'); sync(); } });
 window.addEventListener('offline', () => { if (user) setSync('offline'); });
-document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { refresh(); buscarNuevos(false); } });
 window.addEventListener('beforeunload', e => { if (['pending', 'syncing', 'error', 'offline'].includes(syncState) && user) { e.preventDefault(); e.returnValue = ''; } });
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
