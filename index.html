@@ -360,17 +360,26 @@
     .dcard { grid-template-areas: "who who" "line line" "acts acts"; row-gap: 2px; }
     .d-acts { justify-self: end; margin-top: 6px; }
   }
-  #idlg { width: min(560px, calc(100vw - 32px)); }
-  .ig-list { display: grid; gap: 8px; max-height: 52vh; overflow: auto; margin: 2px -4px; padding: 2px 4px; }
-  .ig-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--lav-stroke); border-radius: 14px; }
-  .ig-main { flex: 1; min-width: 0; }
-  .ig-who { font-weight: 700; font-size: 14.5px; display: flex; gap: 8px; align-items: baseline; }
+  #idlg { width: min(680px, calc(100vw - 32px)); }
+  #idlg form.edit { display: flex; flex-direction: column; max-height: calc(100vh - 40px); box-sizing: border-box; }
+  .ig-tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .ig-search { flex: 1 1 200px; }
+  .ig-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; flex: 1 1 auto; min-height: 120px; overflow-y: auto; overflow-x: hidden; margin: 0 -4px; padding: 2px 4px; }
+  .ig-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--lav-stroke); border-radius: 14px; min-width: 0; }
+  .ig-row.hid { opacity: .7; }
+  .ig-main { flex: 1 1 0; min-width: 0; }
+  .ig-who { font-weight: 700; font-size: 14.5px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
   .ig-who .date { margin: 0; font-weight: 400; }
+  .ig-tag { background: color-mix(in srgb, var(--brand-yellow) 45%, #fff); color: #5a4300; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; }
   .ig-last { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+  .ig-acts { display: flex; align-items: center; gap: 8px; flex: none; }
   .ig-row .btn { padding: 7px 14px; font-size: 13px; white-space: nowrap; }
-  .ig-row .ig-done { color: var(--c-listo); font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+  .ig-done { color: var(--c-listo); font-size: 12.5px; font-weight: 700; white-space: nowrap; }
   .ig-msg { padding: 24px 8px; text-align: center; color: var(--muted); font-size: 14px; }
   .ig-msg.err { color: var(--due); }
+  .ig-count { margin: 0; font-size: 12.5px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+  .ig-count .linkbtn { font-size: 12.5px; }
+  @media (max-width: 520px) { .ig-row { flex-wrap: wrap; } .ig-acts { width: 100%; justify-content: flex-end; } }
   #rdlg { width: min(560px, calc(100vw - 32px)); }
   .r-label { display: flex; justify-content: space-between; align-items: baseline; }
   .r-label .linkbtn { font-size: 12.5px; text-transform: none; letter-spacing: 0; }
@@ -555,8 +564,15 @@
 <dialog id="idlg">
   <form class="edit" method="dialog" onsubmit="return false">
     <h2>Importar de Instagram</h2>
-    <p class="r-sub">Elige el chat que es un pedido. Solo se lee el chat que elijas.</p>
+    <p class="r-sub">Aquí solo aparecen los chats donde escribiste «PEDIDO CONFIRMADO ✅». Los demás no se leen.</p>
+    <div class="ig-tools">
+      <label class="search ig-search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" id="ig-q" placeholder="Buscar por nombre o palabra…" aria-label="Buscar chats">
+      </label>
+    </div>
     <div class="ig-list" id="ig-list" aria-live="polite"></div>
+    <p class="ig-count" id="ig-count"></p>
     <div class="dlg-actions">
       <button type="button" class="btn" id="ig-refresh">Actualizar lista</button>
       <button type="button" class="btn primary" id="ig-close">Listo</button>
@@ -1269,7 +1285,7 @@ $('drafts').addEventListener('click', async e => {
 });
 // ---- Importar desde Instagram: tú eliges el chat, la IA arma el borrador ----
 async function llamarInstagram(cuerpo) {
-  const { data, error } = await sb.functions.invoke('dynamic-worker', { body: cuerpo }) // la función «instagram» de Supabase (se desplegó con este nombre);
+  const { data, error } = await sb.functions.invoke('dynamic-worker', { body: cuerpo }); // la función «instagram» de Supabase (se desplegó con este nombre)
   if (error) {
     let msg = error.message || 'No se pudo conectar.';
     try { const j = await error.context.json(); if (j && j.error) msg = j.error; } catch (e) {}
@@ -1278,40 +1294,80 @@ async function llamarInstagram(cuerpo) {
   if (data && data.error) throw new Error(data.error);
   return data;
 }
+let igChats = [], igMeta = null, igVerOcultos = false;
+let igOcMem = null; // copia en memoria: así funciona aunque el navegador no deje guardar
+const igOcultos = () => { if (!igOcMem) { try { igOcMem = JSON.parse(localStorage.getItem('ig_ocultos') || '{}'); } catch (e) { igOcMem = {}; } } return igOcMem; };
+const igGuardarOcultos = o => { igOcMem = o; try { localStorage.setItem('ig_ocultos', JSON.stringify(o)); } catch (e) {} };
+
+function renderChats() {
+  const box = $('ig-list'), oc = igOcultos(), q = norm($('ig-q').value);
+  const todos = igChats.map(c => ({ ...c, _txt: c.texto || c.ultimo || '', oculto: !!oc[c.id] && (c.fecha || '') <= oc[c.id] }));
+  const nOcultos = todos.filter(c => c.oculto && !c.enCola).length;
+  let lista = todos.filter(c => igVerOcultos ? c.oculto : !c.oculto);
+  if (q) lista = lista.filter(c => norm(c.usuario + ' ' + c._txt).includes(q));
+  box.innerHTML = lista.length ? lista.map(c => {
+    const acciones = c.enCola ? '<span class="ig-done">En Por confirmar ✓</span>'
+      : c.oculto ? '<button class="linkbtn" data-act="ig-show" type="button">Mostrar</button>'
+      : `<button class="btn soft" data-act="ig-import" type="button">Importar</button>
+         <button class="icon-btn danger" data-act="ig-hide" type="button" title="Ocultar este chat" aria-label="Ocultar el chat de ${esc(c.usuario)}">${TRASH}</button>`;
+    return `<div class="ig-row${c.oculto ? ' hid' : ''}" data-conv="${esc(c.id)}">
+      <div class="ig-main">
+        <div class="ig-who">@${esc(c.usuario)}${c.fecha ? `<span class="date">${fmtDate(c.fecha.slice(0, 10))}</span>` : ''}${c.confirmado ? '<span class="ig-tag">Pedido confirmado ✅</span>' : ''}</div>
+        <div class="ig-last">${c.tuyo ? 'Tú: ' : ''}${esc(c.ultimo) || '[foto, audio o reacción]'}</div>
+        ${c.nota ? `<div class="ig-last ig-nota">${esc(c.nota)}</div>` : ''}
+      </div>
+      <div class="ig-acts">${acciones}</div>
+    </div>`;
+  }).join('') : `<div class="ig-msg">${igVerOcultos ? 'No hay chats ocultos.' : q ? 'Ningún chat coincide con tu búsqueda.' : 'No encontré chats con «PEDIDO CONFIRMADO ✅» entre tus chats recientes.'}</div>`;
+  $('ig-count').innerHTML = `<span>${lista.length} ${lista.length === 1 ? 'chat' : 'chats'}${igMeta ? ` con «PEDIDO CONFIRMADO ✅» · ${igMeta.revisados} chats revisados` : ''}</span>` +
+    (igVerOcultos ? '<button class="linkbtn" type="button" data-act="ig-ocultos">Volver a la lista</button>'
+      : nOcultos ? `<button class="linkbtn" type="button" data-act="ig-ocultos">Ver ocultos (${nOcultos})</button>` : '');
+}
 async function cargarChats() {
-  const box = $('ig-list');
-  box.innerHTML = '<div class="ig-msg">Buscando tus chats…</div>';
+  $('ig-list').innerHTML = '<div class="ig-msg">Buscando tus chats…</div>'; $('ig-count').textContent = '';
   try {
-    const { chats } = await llamarInstagram({ accion: 'listar' });
-    box.innerHTML = chats.length ? chats.map(c => `<div class="ig-row" data-conv="${esc(c.id)}">
-        <div class="ig-main">
-          <div class="ig-who">@${esc(c.usuario)}${c.fecha ? `<span class="date">${fmtDate(c.fecha.slice(0, 10))}</span>` : ''}</div>
-          <div class="ig-last">${c.tuyo ? 'Tú: ' : ''}${esc(c.ultimo)}</div>
-        </div>
-        ${c.enCola ? '<span class="ig-done">En Por confirmar ✓</span>' : '<button class="btn soft" data-act="ig-import" type="button">Importar</button>'}
-      </div>`).join('') : '<div class="ig-msg">No encontré chats recientes.</div>';
+    const r = await llamarInstagram({ accion: 'listar' });
+    igChats = r.chats || []; igMeta = r.meta || null;
+    renderChats();
   } catch (e) {
-    box.innerHTML = `<div class="ig-msg err">${esc(e.message)}</div>`;
+    $('ig-list').innerHTML = `<div class="ig-msg err">${esc(e.message)}</div>`;
   }
 }
-$('btn-import').addEventListener('click', () => { $('idlg').showModal(); cargarChats(); });
+$('btn-import').addEventListener('click', () => {
+  $('ig-q').value = ''; igVerOcultos = false;
+  $('idlg').showModal(); cargarChats();
+});
 $('ig-refresh').addEventListener('click', cargarChats);
 $('ig-close').addEventListener('click', () => {
   $('idlg').close();
   if (drafts.length) $('confirm-sec').scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
+$('ig-q').addEventListener('input', renderChats);
+$('ig-count').addEventListener('click', e => {
+  if (e.target.dataset.act === 'ig-ocultos') { igVerOcultos = !igVerOcultos; renderChats(); }
+});
 $('ig-list').addEventListener('click', async e => {
-  const btn = e.target.closest('[data-act="ig-import"]'); if (!btn) return;
-  const row = btn.closest('.ig-row');
+  const btn = e.target.closest('[data-act]'); if (!btn) return;
+  const row = btn.closest('.ig-row'), id = row.dataset.conv, chat = igChats.find(c => c.id === id);
+  if (btn.dataset.act === 'ig-hide' && chat) { // se oculta hasta que llegue un mensaje nuevo
+    const oc = igOcultos(); oc[id] = chat.fecha || new Date().toISOString(); igGuardarOcultos(oc); return renderChats();
+  }
+  if (btn.dataset.act === 'ig-show') { const oc = igOcultos(); delete oc[id]; igGuardarOcultos(oc); return renderChats(); }
+  if (btn.dataset.act !== 'ig-import') return;
   btn.disabled = true; btn.textContent = 'Leyendo…';
   try {
-    await llamarInstagram({ accion: 'importar', conversacion: row.dataset.conv });
-    btn.replaceWith(Object.assign(document.createElement('span'), { className: 'ig-done', textContent: 'En Por confirmar ✓' }));
+    const r = await llamarInstagram({ accion: 'importar', conversacion: id });
+    if (chat) {
+      chat.enCola = true;
+      const l = r && r.lectura;
+      if (l) chat.nota = `Leído: ${l.mascotas ?? '?'} mascota${l.mascotas === 1 ? '' : 's'} · ${l.comprobantes} comprobante${l.comprobantes === 1 ? '' : 's'}${l.pendiente != null ? ` · falta ${money(l.pendiente)}` : ''}`;
+    }
+    renderChats();
     await refreshDrafts();
   } catch (err) {
     btn.disabled = false; btn.textContent = 'Reintentar';
     let aviso = row.querySelector('.ig-err');
-    if (!aviso) { aviso = document.createElement('div'); aviso.className = 'ig-last ig-err'; aviso.style.color = 'var(--due)'; row.querySelector('.ig-main').appendChild(aviso); }
+    if (!aviso) { aviso = document.createElement('div'); aviso.className = 'ig-last ig-err'; aviso.style.color = 'var(--due)'; aviso.style.whiteSpace = 'normal'; row.querySelector('.ig-main').appendChild(aviso); }
     aviso.textContent = err.message;
   }
 });
