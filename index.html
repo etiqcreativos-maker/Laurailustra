@@ -328,6 +328,57 @@
   .khead .n { background: var(--card); }
   .kmore, .kempty { border-radius: 14px; }
 
+  /* Por confirmar */
+  .tab-n { margin-left: 6px; background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 700; border-radius: 999px; padding: 1px 8px; vertical-align: 2px; }
+  .confirm-sec { margin: 8px 0 28px; scroll-margin-top: 84px; }
+  .confirm-sec[hidden] { display: none; }
+  .sec-title { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
+  .confirm-sec .hint-bar { margin-bottom: 14px; }
+  button.stat.confirm { font: inherit; text-align: left; width: 100%; cursor: pointer; background: color-mix(in srgb, var(--brand-yellow) 55%, #fff); }
+  button.stat.confirm:hover { background: color-mix(in srgb, var(--brand-yellow) 70%, #fff); }
+  button.stat.confirm .label { color: #5a4300; }
+  @media (min-width: 1001px) { .stats { grid-template-columns: repeat(5, minmax(0, 1fr)); } .stat { padding: 18px 20px; } .stat .value { font-size: clamp(22px, 2.3vw, 32px); white-space: nowrap; } }
+  @media (max-width: 1000px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .stat.confirm { grid-column: 1 / -1; } }
+  @media (prefers-color-scheme: dark) { button.stat.confirm { background: #4b4224; } button.stat.confirm:hover { background: #594d2a; } button.stat.confirm .label { color: #f1dfa0; } }
+  .d-msg { margin: 0 0 16px; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--c-hacer) 14%, var(--bg)); font-size: 14px; }
+  .d-msg[hidden] { display: none; }
+  .drafts { display: grid; gap: 10px; }
+  .dcard { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "who acts" "line acts"; column-gap: 16px; align-items: center; background: var(--card); border-left: 4px solid var(--c-proceso); border-radius: 14px; box-shadow: 0 2px 10px rgba(42, 42, 42, .07); padding: 12px 16px; min-width: 0; }
+  .d-who { grid-area: who; display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; min-width: 0; }
+  .d-line { grid-area: line; display: flex; align-items: baseline; gap: 8px; margin-top: 3px; min-width: 0; }
+  .d-what { color: var(--muted); font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .d-val { flex: none; font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .d-val::before { content: '·'; margin-right: 8px; color: var(--muted); font-weight: 400; }
+  .d-acts { grid-area: acts; display: flex; align-items: center; gap: 16px; }
+  .d-acts .btn { padding: 8px 16px; font-size: 13.5px; }
+  .d-acts .icon-btn { position: relative; }
+  .linkbtn { border: 0; background: transparent; padding: 0; font: inherit; font-size: 13px; font-weight: 700; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; white-space: nowrap; }
+  .linkbtn:hover { color: var(--accent-hover); }
+  .icon-btn.armed { color: var(--due); background: color-mix(in srgb, var(--due) 10%, transparent); border-color: color-mix(in srgb, var(--due) 25%, transparent); }
+  .icon-btn.armed::after { content: '¿Seguro?'; position: absolute; right: 0; bottom: calc(100% + 4px); background: var(--due); color: #fff; font-size: 11.5px; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; pointer-events: none; }
+  @media (max-width: 860px) {
+    .dcard { grid-template-areas: "who who" "line line" "acts acts"; row-gap: 2px; }
+    .d-acts { justify-self: end; margin-top: 6px; }
+  }
+  #idlg { width: min(560px, calc(100vw - 32px)); }
+  .ig-list { display: grid; gap: 8px; max-height: 52vh; overflow: auto; margin: 2px -4px; padding: 2px 4px; }
+  .ig-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--lav-stroke); border-radius: 14px; }
+  .ig-main { flex: 1; min-width: 0; }
+  .ig-who { font-weight: 700; font-size: 14.5px; display: flex; gap: 8px; align-items: baseline; }
+  .ig-who .date { margin: 0; font-weight: 400; }
+  .ig-last { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+  .ig-row .btn { padding: 7px 14px; font-size: 13px; white-space: nowrap; }
+  .ig-row .ig-done { color: var(--c-listo); font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+  .ig-msg { padding: 24px 8px; text-align: center; color: var(--muted); font-size: 14px; }
+  .ig-msg.err { color: var(--due); }
+  #rdlg { width: min(560px, calc(100vw - 32px)); }
+  .r-label { display: flex; justify-content: space-between; align-items: baseline; }
+  .r-label .linkbtn { font-size: 12.5px; text-transform: none; letter-spacing: 0; }
+  .r-err { margin: 0; color: var(--due); font-size: 13px; }
+  #rdlg .dlg-actions { flex-wrap: wrap; }
+  .r-sub { margin: 0; color: var(--muted); font-size: 13.5px; }
+  .field textarea { padding: 10px 12px; border: 1px solid var(--lav-stroke); border-radius: 12px; background-color: var(--card); color: var(--text); font: inherit; font-weight: 400; font-size: 14px; letter-spacing: 0; text-transform: none; line-height: 1.45; resize: vertical; width: 100%; box-sizing: border-box; }
+
   /* Diálogo y barra de guardar */
   dialog { border: 0; border-radius: 24px; }
   .field input, .field select { border-radius: 12px; }
@@ -415,6 +466,7 @@
       <div class="hero-cta">
         <button class="btn soft" id="btn-new-hero">+ Agregar pedido</button>
         <button class="btn ghost" id="btn-go-board">Ver tablero</button>
+        <button class="btn ghost" id="btn-import">Importar de Instagram</button>
       </div>
     </div>
     <div class="hero-badge">
@@ -437,10 +489,18 @@
     <div class="stat"><div class="label">Listos</div><div class="value" id="s-done">0</div></div>
     <div class="stat"><div class="label">Total vendido</div><div class="value" id="s-sold">$0</div></div>
     <div class="stat"><div class="label">Pendiente por pagar</div><div class="value" id="s-due">$0</div></div>
+    <button type="button" class="stat confirm" id="s-conf-card" title="Ver los pedidos por confirmar"><div class="label">Pendientes por confirmar</div><div class="value" id="s-conf">0</div></button>
     <div class="progress">
       <div class="prow"><span id="p-text"></span><span id="p-pct"></span></div>
       <div class="bar"><i id="p-bar" style="width:0%"></i></div>
     </div>
+  </section>
+
+  <p class="d-msg" id="d-msg" hidden></p>
+  <section class="confirm-sec" id="confirm-sec" aria-label="Por confirmar" hidden>
+    <h2 class="sec-title">Por confirmar <span class="tab-n" id="tab-n">0</span></h2>
+    <p class="hint-bar">Pedidos detectados en tus conversaciones de Instagram. Toca «Confirmar» para revisar los datos, copiar el mensaje y pasarlos a tu lista.</p>
+    <div class="drafts" id="drafts"></div>
   </section>
 
   <section class="filters" aria-label="Filtros">
@@ -491,6 +551,71 @@
     <div class="board" id="board"></div>
   </div>
 </div>
+
+<dialog id="idlg">
+  <form class="edit" method="dialog" onsubmit="return false">
+    <h2>Importar de Instagram</h2>
+    <p class="r-sub">Elige el chat que es un pedido. Solo se lee el chat que elijas.</p>
+    <div class="ig-list" id="ig-list" aria-live="polite"></div>
+    <div class="dlg-actions">
+      <button type="button" class="btn" id="ig-refresh">Actualizar lista</button>
+      <button type="button" class="btn primary" id="ig-close">Listo</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="rdlg">
+  <form class="edit" id="rform" method="dialog">
+    <h2>Confirmar pedido</h2>
+    <p class="r-sub">Revisa los datos, copia el mensaje para la clienta y confirma.</p>
+    <div class="two">
+      <label class="field">Cliente
+        <input id="c-cliente" required placeholder="Nombre o usuario">
+      </label>
+      <label class="field">Canal
+        <select id="c-canal">
+          <option value="ig">Instagram</option>
+          <option value="wpp">WhatsApp</option>
+          <option value="meli">Mercado Libre</option>
+          <option value="otro">Otro</option>
+        </select>
+      </label>
+    </div>
+    <label class="field">Pedido
+      <input id="c-pedido" placeholder="Ej: 2 perritos enmarcados">
+    </label>
+    <div class="two">
+      <label class="field">Monto
+        <input id="c-monto" inputmode="numeric" placeholder="50000">
+      </label>
+      <label class="field">Abono
+        <input id="c-abono" inputmode="numeric" placeholder="0">
+      </label>
+    </div>
+    <div class="two">
+      <label class="field">Pago
+        <select id="c-pago">
+          <option value="total">Total</option>
+          <option value="parcial">Parcial</option>
+          <option value="sin_abono">Sin abono</option>
+        </select>
+      </label>
+      <div class="field">Restante <output id="c-rest" class="rest-out">$0</output></div>
+    </div>
+    <label class="field">Fecha del pedido
+      <input type="date" id="c-fecha">
+    </label>
+    <label class="field">
+      <span class="r-label">Mensaje para la clienta <button type="button" class="linkbtn" id="c-copy">Copiar mensaje</button></span>
+      <textarea id="c-text" rows="9"></textarea>
+    </label>
+    <p class="r-err" id="c-err" hidden></p>
+    <div class="dlg-actions">
+      <button type="button" class="btn" id="c-cancel">Cancelar</button>
+      <button type="submit" class="btn primary" id="c-ok">Confirmar pedido</button>
+    </div>
+  </form>
+</dialog>
 
 <dialog id="dlg">
   <form class="edit" id="form" method="dialog">
@@ -777,7 +902,9 @@ $('toast-undo').addEventListener('click', () => {
 
 /* ---------- Secciones: Pedidos / Tablero ---------- */
 // Se cambia con un clic (sin depender de la dirección de la página, que algunas vistas previas bloquean).
-let currentView = location.hash === '#tablero' ? 'tablero' : 'pedidos';
+const VIEWS = ['pedidos', 'tablero'];
+const viewFromHash = () => VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'pedidos';
+let currentView = viewFromHash();
 function showView(v = currentView) {
   currentView = v;
   $('view-pedidos').hidden = v !== 'pedidos';
@@ -793,7 +920,7 @@ document.querySelector('.tabs').addEventListener('click', e => {
   const tab = e.target.closest('.tab'); if (!tab) return;
   e.preventDefault(); showView(tab.dataset.view); window.scrollTo(0, 0);
 });
-window.addEventListener('hashchange', () => showView(location.hash === '#tablero' ? 'tablero' : 'pedidos'));
+window.addEventListener('hashchange', () => showView(viewFromHash()));
 
 /* ---------- Tablero (kanban) ---------- */
 const STAGES = [
@@ -990,6 +1117,7 @@ async function fetchAll() {
   remote = snapshot(orders);
 }
 async function refresh() { // trae lo último de la nube (otro dispositivo, otra pestaña)
+  refreshDrafts();
   if (!sb || !user || syncing || syncState === 'pending' || syncState === 'syncing') return;
   try { await fetchAll(); render(); setSync('ok'); } catch (e) {}
 }
@@ -998,7 +1126,196 @@ function subscribeRealtime() {
   channel = sb.channel('pedidos-cambios')
     .on('postgres_changes', { event: '*', schema: 'public', table: TABLE }, () => refresh())
     .subscribe();
+  try {
+    channelD = sb.channel('borradores-cambios')
+      .on('postgres_changes', { event: '*', schema: 'public', table: DRAFTS }, () => refreshDrafts())
+      .subscribe();
+  } catch (e) {}
 }
+
+/* ---------- Por confirmar (pedidos detectados en Instagram) ---------- */
+// Los borradores viven en la tabla «borradores». «Confirmar» abre una ventana con todos los datos
+// (corregibles) y el mensaje para la clienta; al confirmar, el borrador pasa a ser un pedido normal.
+const DRAFTS = 'borradores';
+const TRASH = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>';
+let drafts = [], channelD = null, dropArmed = null, dMsgTimer = null, confirmingId = null, msgEdited = false;
+const draftFromRow = r => ({
+  id: Number(r.id), cliente: r.cliente || '', pedido: r.pedido || '', monto: r.monto == null ? null : Number(r.monto),
+  abono: r.abono == null ? 0 : Number(r.abono), pago: r.pago || '', canal: r.canal || 'ig', fecha: r.fecha || todayStr(),
+  igUser: r.ig_user || '',
+});
+const pagoDe = d => d.monto > 0 && (d.abono || 0) >= d.monto ? 'total' : (d.abono || 0) > 0 ? 'parcial' : 'sin_abono';
+
+function buildResumen(d) {
+  const nombre = (d.cliente || '').trim().split(/\s+/)[0];
+  const falta = Math.max(0, (d.monto || 0) - (d.abono || 0));
+  const L = [`Hola${nombre ? ' ' + nombre : ''}! 💜 Te dejo el resumen de tu pedido:`, '', `• Pedido: ${d.pedido || '—'}`];
+  if (d.monto != null) L.push(`• Valor: ${money(d.monto)}`);
+  if ((d.abono || 0) > 0) L.push(`• Abono recibido: ${money(d.abono)}`);
+  if (d.monto != null) L.push(falta > 0 ? `• Saldo pendiente: ${money(falta)}` : '• Pago completo ✅');
+  L.push('', 'Si todo está bien, quedo atenta para empezar. ¡Gracias!');
+  return L.join('\n');
+}
+
+async function fetchDrafts() {
+  try {
+    const { data, error } = await sb.from(DRAFTS).select('*').order('id');
+    if (error) throw error;
+    drafts = data.map(draftFromRow);
+  } catch (e) { drafts = []; }
+}
+async function refreshDrafts() {
+  if (!sb || !user) return;
+  await fetchDrafts(); renderDrafts();
+}
+function updateDraftBadge() {
+  $('s-conf').textContent = drafts.length;
+  $('tab-n').textContent = drafts.length;
+  $('confirm-sec').hidden = !drafts.length;
+}
+function draftHTML(d) {
+  return `<article class="dcard" data-id="${d.id}">
+    <div class="d-who">${esc(d.cliente) || '<em>Sin nombre</em>'}<span class="chip">${CANAL[d.canal] || 'Instagram'}</span></div>
+    <div class="d-line"><span class="d-what">${esc(d.pedido) || '—'}</span><span class="d-val">${money(d.monto)}</span></div>
+    <div class="d-acts">
+      <button class="btn soft" data-act="d-ok" type="button">Confirmar</button>
+      <button class="icon-btn danger" data-act="d-drop" type="button" aria-label="Descartar ${esc(d.cliente)}" title="Descartar">${TRASH}</button>
+    </div>
+  </article>`;
+}
+function renderDrafts() {
+  updateDraftBadge();
+  $('drafts').innerHTML = drafts.map(draftHTML).join('');
+}
+function showDraftMsg(text) {
+  const m = $('d-msg'); m.textContent = text; m.hidden = false;
+  clearTimeout(dMsgTimer); dMsgTimer = setTimeout(() => { m.hidden = true; }, 7000);
+}
+async function removeDraft(d) {
+  const { error } = await sb.from(DRAFTS).delete().eq('id', d.id);
+  if (error) throw error;
+  drafts = drafts.filter(x => x.id !== d.id);
+}
+
+// Ventana «Confirmar pedido»: datos corregibles + mensaje para copiar
+function readConfirm() {
+  return {
+    canal: $('c-canal').value, cliente: $('c-cliente').value.trim(), pedido: $('c-pedido').value.trim(),
+    monto: toMonto($('c-monto').value), abono: toMonto($('c-abono').value) ?? 0, pago: $('c-pago').value, fecha: $('c-fecha').value,
+  };
+}
+function refreshConfirm() {
+  const v = readConfirm();
+  $('c-rest').textContent = money(Math.max(0, (v.monto || 0) - (v.abono || 0)));
+  if (!msgEdited) $('c-text').value = buildResumen(v);
+}
+function openConfirm(d) {
+  confirmingId = d.id; msgEdited = false;
+  $('c-canal').value = d.canal; $('c-cliente').value = d.cliente; $('c-pedido').value = d.pedido;
+  $('c-monto').value = d.monto ?? ''; $('c-abono').value = d.abono || ''; $('c-pago').value = d.pago || pagoDe(d);
+  $('c-fecha').value = d.fecha || '';
+  $('c-copy').textContent = 'Copiar mensaje'; $('c-err').hidden = true; $('c-ok').disabled = false;
+  refreshConfirm();
+  $('rdlg').showModal();
+}
+$('rform').addEventListener('input', e => {
+  if (e.target.id === 'c-text') { msgEdited = true; return; }
+  if (e.target.id === 'c-monto' || e.target.id === 'c-abono') { // el estado de pago se ajusta solo según el abono
+    const v = readConfirm(); $('c-pago').value = pagoDe(v);
+  }
+  refreshConfirm();
+});
+$('c-pago').addEventListener('change', () => { // al elegir el estado se sugiere el abono
+  const v = readConfirm(), m = v.monto || 0, a = v.abono || 0;
+  if (v.pago === 'total') $('c-abono').value = m || '';
+  else if (v.pago === 'sin_abono') $('c-abono').value = 0;
+  else if (v.pago === 'parcial' && (a === 0 || a >= m)) $('c-abono').value = Math.round(m / 2) || '';
+  refreshConfirm();
+});
+$('c-cancel').addEventListener('click', () => $('rdlg').close());
+$('c-copy').addEventListener('click', async () => {
+  const ta = $('c-text');
+  try { await navigator.clipboard.writeText(ta.value); } catch (e) { ta.select(); document.execCommand('copy'); }
+  $('c-copy').textContent = '¡Copiado!';
+});
+$('rform').addEventListener('submit', async e => {
+  e.preventDefault();
+  const d = drafts.find(x => x.id === confirmingId);
+  if (!d) return $('rdlg').close();
+  const v = readConfirm();
+  const order = { id: Date.now(), ...v, pago: v.pago || pagoDe(v), listo: false, etapa: 'hacer' };
+  $('c-ok').disabled = true;
+  try { await removeDraft(d); }   // primero se quita el borrador: así nunca se crea el pedido dos veces
+  catch (err) { $('c-ok').disabled = false; $('c-err').textContent = 'No se pudo confirmar. Inténtalo de nuevo.'; $('c-err').hidden = false; return; }
+  orders.push(order); save(); render(); renderDrafts();
+  confirmingId = null; $('rdlg').close();
+});
+
+$('drafts').addEventListener('click', async e => {
+  const btn = e.target.closest('[data-act]'); if (!btn) return;
+  const card = btn.closest('.dcard'), d = card && drafts.find(x => x.id === Number(card.dataset.id));
+  if (!d) return;
+  const act = btn.dataset.act;
+  if (act === 'd-ok') openConfirm(d);
+  if (act === 'd-drop') {
+    if (dropArmed !== d.id) { // primer clic: pide confirmar
+      dropArmed = d.id; btn.classList.add('armed');
+      setTimeout(() => { if (dropArmed === d.id) { dropArmed = null; btn.classList.remove('armed'); } }, 3500);
+      return;
+    }
+    dropArmed = null;
+    try { await removeDraft(d); renderDrafts(); } catch (err) { showDraftMsg('No se pudo descartar. Inténtalo de nuevo.'); }
+  }
+});
+// ---- Importar desde Instagram: tú eliges el chat, la IA arma el borrador ----
+async function llamarInstagram(cuerpo) {
+  const { data, error } = await sb.functions.invoke('dynamic-worker', { body: cuerpo }) // la función «instagram» de Supabase (se desplegó con este nombre);
+  if (error) {
+    let msg = error.message || 'No se pudo conectar.';
+    try { const j = await error.context.json(); if (j && j.error) msg = j.error; } catch (e) {}
+    throw new Error(msg);
+  }
+  if (data && data.error) throw new Error(data.error);
+  return data;
+}
+async function cargarChats() {
+  const box = $('ig-list');
+  box.innerHTML = '<div class="ig-msg">Buscando tus chats…</div>';
+  try {
+    const { chats } = await llamarInstagram({ accion: 'listar' });
+    box.innerHTML = chats.length ? chats.map(c => `<div class="ig-row" data-conv="${esc(c.id)}">
+        <div class="ig-main">
+          <div class="ig-who">@${esc(c.usuario)}${c.fecha ? `<span class="date">${fmtDate(c.fecha.slice(0, 10))}</span>` : ''}</div>
+          <div class="ig-last">${c.tuyo ? 'Tú: ' : ''}${esc(c.ultimo)}</div>
+        </div>
+        ${c.enCola ? '<span class="ig-done">En Por confirmar ✓</span>' : '<button class="btn soft" data-act="ig-import" type="button">Importar</button>'}
+      </div>`).join('') : '<div class="ig-msg">No encontré chats recientes.</div>';
+  } catch (e) {
+    box.innerHTML = `<div class="ig-msg err">${esc(e.message)}</div>`;
+  }
+}
+$('btn-import').addEventListener('click', () => { $('idlg').showModal(); cargarChats(); });
+$('ig-refresh').addEventListener('click', cargarChats);
+$('ig-close').addEventListener('click', () => {
+  $('idlg').close();
+  if (drafts.length) $('confirm-sec').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+$('ig-list').addEventListener('click', async e => {
+  const btn = e.target.closest('[data-act="ig-import"]'); if (!btn) return;
+  const row = btn.closest('.ig-row');
+  btn.disabled = true; btn.textContent = 'Leyendo…';
+  try {
+    await llamarInstagram({ accion: 'importar', conversacion: row.dataset.conv });
+    btn.replaceWith(Object.assign(document.createElement('span'), { className: 'ig-done', textContent: 'En Por confirmar ✓' }));
+    await refreshDrafts();
+  } catch (err) {
+    btn.disabled = false; btn.textContent = 'Reintentar';
+    let aviso = row.querySelector('.ig-err');
+    if (!aviso) { aviso = document.createElement('div'); aviso.className = 'ig-last ig-err'; aviso.style.color = 'var(--due)'; row.querySelector('.ig-main').appendChild(aviso); }
+    aviso.textContent = err.message;
+  }
+});
+$('s-conf-card').addEventListener('click', () => { if (drafts.length) $('confirm-sec').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 
 /* ---------- Inicio de sesión ---------- */
 function lock(on, msg = '') {
@@ -1010,11 +1327,14 @@ async function enter(u) {
   user = u; setSync('idle');
   try { await fetchAll(); setSync('ok'); }
   catch (e) { setSync('error'); $('warn').hidden = false; $('warn').textContent = 'No se pudieron cargar los pedidos: ' + (e.message || e); }
-  lock(false); render(); subscribeRealtime();
+  await fetchDrafts();
+  lock(false); render(); renderDrafts(); subscribeRealtime();
 }
 function leave() {
-  user = null; orders = []; remote = new Map();
+  user = null; orders = []; remote = new Map(); drafts = [];
   if (channel && sb) { sb.removeChannel(channel); channel = null; }
+  if (channelD && sb) { sb.removeChannel(channelD); channelD = null; }
+  renderDrafts();
   render(); lock(true);
 }
 async function startApp() {
